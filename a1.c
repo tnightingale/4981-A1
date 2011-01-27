@@ -1,5 +1,32 @@
+/** 
+ * @package a1
+ * @file    a1.c
+ * @author  Tom Nightingale
+ *
+ * @brief   This program demonstrates simple Linux IPC using pipes and signals.
+ * @details 3 processes are created:
+ *  1. Input (parent)
+ *      This process manages all keyboard input. It passes characters to the
+ *      output process for display while also storing them in a buffer. When
+ *      the special <ENTER> key is pushed, the buffer is then sent to the
+ *      translate process for parsing.
+ *  2. Output
+ *      This process outputs all characters sent to it.
+ *  3. Translate
+ *      This process parses any string sent to it according to the rules laid 
+ *      out in the assignment brief. Once finished, it passes the resulting
+ *      string onto the output process for display.
+ */
+
 #include "a1.h";
 
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   The program's entry point.
+ * @details Initializes the processes and ports for IPC.
+ */
 int main() {  
   int pfd[3][2];
   int i = 0;
@@ -22,21 +49,25 @@ int main() {
         // Output process.
         case OUTPUT_PROC:
           
-          // Closing unused pipe.
-          close(pfd[1][0]);
-          close(pfd[1][1]);
+          // Closing unused pipe descriptors.
+          close(pfd[PIPE_INPUT_OUTPUT][WRITE]);
+          close(pfd[PIPE_TRANS_OUTPUT][WRITE]);
+          close(pfd[PIPE_INPUT_TRANSLATE][READ]);
+          close(pfd[PIPE_INPUT_TRANSLATE][WRITE]);
           
-          output_proc(pfd[0], pfd[2]);
+          output_proc(pfd[PIPE_INPUT_OUTPUT][READ], pfd[PIPE_TRANS_OUTPUT][READ]);
           return 0;
 
         // Translate process.  
         case TRANSLATE_PROC:
           
-          // Closing unused pipe.
-          close(pfd[0][0]);
-          close(pfd[0][1]);
+          // Closing unused pipe descriptors.
+          close(pfd[PIPE_INPUT_TRANSLATE][WRITE]);
+          close(pfd[PIPE_TRANS_OUTPUT][READ]);
+          close(pfd[PIPE_INPUT_OUTPUT][READ]);
+          close(pfd[PIPE_INPUT_OUTPUT][WRITE]);
           
-          translate_proc(pfd[1], pfd[2]);
+          translate_proc(pfd[PIPE_INPUT_TRANSLATE][READ], pfd[PIPE_TRANS_OUTPUT][WRITE]);
           return 0;
       }
     }
@@ -45,10 +76,12 @@ int main() {
 
   // Input process (parent).
 
-  // Closing unused pipe.
-  close(pfd[2][0]);
-  close(pfd[2][1]);
-  input_proc(pid, pfd[0], pfd[1]);
+  // Closing unused pipe descriptors.
+  close(pfd[PIPE_INPUT_OUTPUT][READ]);
+  close(pfd[PIPE_INPUT_TRANSLATE][READ]);
+  close(pfd[PIPE_TRANS_OUTPUT][READ]);
+  close(pfd[PIPE_TRANS_OUTPUT][WRITE]);
+  input_proc(pid, pfd[PIPE_INPUT_OUTPUT][WRITE], pfd[PIPE_INPUT_TRANSLATE][WRITE]);
   
   // Return keyboard state.
   system("stty -raw icanon -igncr echo");
@@ -56,18 +89,31 @@ int main() {
   return 0;
 }
 
-// Parent Processes.
-void input_proc(int pid[2], int txpipe_output[2], int txpipe_translate[2]) {
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   The input process.
+ * @details This is the program's main process. It monitors all keyboard input
+ *          and passes characters on to the output process for echoing back.
+ *          It also stores the characters within a buffer until the special
+ *          <ENTER> character is received. When this occurs, the buffer is sent
+ *          to the translate function for processing.
+ *
+ * @param   pid 
+ *              An array containing all child process id's.
+ * @param   txpipe_output
+ *              A pipe write file descriptor for sending data to the output process.
+ * @param   txpipe_translate
+ *              A pipe write file descriptor for sending data to the translate process.
+ */
+void input_proc(int pid[2], int txpipe_output, int txpipe_translate) {
   int c = 0;
   int count = 0;
   char buffer[BUFFSIZE];
-  
-  // Close the read descriptors.
-  close(txpipe_output[0]);
-  close(txpipe_translate[0]);
 
   while (c != 'T' && (c = getchar()) != EOF) {
-    write(txpipe_output[1], &c, 1);
+    write(txpipe_output, &c, 1);
     buffer[count++] = c;
     
     switch (c) {
@@ -79,7 +125,7 @@ void input_proc(int pid[2], int txpipe_output[2], int txpipe_translate[2]) {
       case 'T':
         // fall through.
       case 'E':
-        write(txpipe_translate[1], buffer, count);
+        write(txpipe_translate, buffer, count);
         // fall through.
         
       case 'K':
@@ -88,20 +134,27 @@ void input_proc(int pid[2], int txpipe_output[2], int txpipe_translate[2]) {
         break;
     }
   }
-  
-  //fprintf(stderr, "END: parent.\n\r");
 }
 
-// Child Processes.
-void output_proc(int rxpipe_input[2], int rxpipe_translate[2]) {
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   The output process.
+ * @details This process handles all output display. It simply reads data off its pipes and
+ *          echos it to stdout. If it receives an 'E' (special <ENTER> character), it will
+ *          check the translate pipe for any data to echo.
+ *
+ * @param   rxpipe_input
+ *              A pipe read file descriptor for receiving data from the output process.
+ * @param   rxpipe_translate
+ *              A pipe read file descriptor for receiving data from the translate process.
+ */
+void output_proc(int rxpipe_input, int rxpipe_translate) {
   char buffer[BUFFSIZE];
   int finished = FALSE;
-
-  // Close the write descriptors.
-  close(rxpipe_input[1]);
-  close(rxpipe_translate[1]);
   
-  while (!finished && read_pipe(rxpipe_input[0], buffer, BUFFSIZE) >= 0) {
+  while (!finished && read_pipe(rxpipe_input, buffer, BUFFSIZE) >= 0) {
     switch (buffer[0]) {
       
       case 'T':
@@ -111,7 +164,7 @@ void output_proc(int rxpipe_input[2], int rxpipe_translate[2]) {
       case 'E':
         printf("%s\n\r", buffer);
     
-        if (read_pipe(rxpipe_translate[0], buffer, BUFFSIZE) >= 0) {
+        if (read_pipe(rxpipe_translate, buffer, BUFFSIZE) >= 0) {
           printf("%s\n\r", buffer);
         }
         break;
@@ -130,19 +183,32 @@ void output_proc(int rxpipe_input[2], int rxpipe_translate[2]) {
   //fprintf(stderr, "END: output_proc.\n\r");
 }
 
-void translate_proc(int rxpipe_input[2], int txpipe_output[2]) {
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   The translate process.
+ * @details This process handles translation of the input buffer. Whenever the input process
+ *          writes data onto the pipe, this process will read it off and parse it according 
+ *          to the following rules.
+ *            * X: Backspace character.
+ *            * a: Translated into z.
+ *            * T: Terminate character.
+ *
+ * @param   rxpipe_input
+ *              A pipe read file descriptor for receiving data from the output process.
+ * @param   txpipe_output
+ *              A pipe write file descriptor for sending data to the output process.
+ */
+void translate_proc(int rxpipe_input, int txpipe_output) {
   int nread;
   int i = 0;
   int j = 0;
   int finished = 0;
   char buffer[BUFFSIZE];
   char translated[BUFFSIZE];
-
-  // Close the write descriptors.
-  close(rxpipe_input[1]);
-  close(txpipe_output[0]);
   
-  while (!finished && (nread = read_pipe(rxpipe_input[0], buffer, BUFFSIZE)) >= 0) {
+  while (!finished && (nread = read_pipe(rxpipe_input, buffer, BUFFSIZE)) >= 0) {
     // Process each character received.
     for (i = 0, j = 0; !finished && i < nread; i++) {
       switch (buffer[i]) {        
@@ -170,10 +236,24 @@ void translate_proc(int rxpipe_input[2], int txpipe_output[2]) {
     // Terminate translated string.
     translated[j - 1] = '\0';
     
-    write(txpipe_output[1], translated, j);
+    write(txpipe_output, translated, j);
   }
 }
 
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   A read() wrapper function.
+ * @details Helper function for read().
+ *
+ * @param   pipe_rd
+ *              A pipe read file descriptor for receiving data.
+ * @param   buffer
+ *              A buffer to write data into.
+ * @param   size
+ *              The max amount of data to read.
+ */
 int read_pipe(int pipe_rd, char * buffer, size_t size) {
   int nread = 0;
   
@@ -186,7 +266,15 @@ int read_pipe(int pipe_rd, char * buffer, size_t size) {
   return nread;
 }
 
-// Error Function.
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   A error helper function. Prints message to stderr and terminates program.
+ *
+ * @param   s
+ *              An error message to print to stderr.
+ */
 void fatal(char *s) {
   perror(s);    /* print error msg and die */
   system("stty -raw -igncr echo");
