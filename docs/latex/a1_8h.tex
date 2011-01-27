@@ -1,0 +1,278 @@
+\hypertarget{a1_8h}{
+\section{a1.h File Reference}
+\label{a1_8h}\index{a1.h@{a1.h}}
+}
+
+
+See: \hyperlink{a1_8c}{a1.c}.  
+
+
+{\ttfamily \#include $<$stdlib.h$>$}\par
+{\ttfamily \#include $<$stdio.h$>$}\par
+{\ttfamily \#include $<$unistd.h$>$}\par
+{\ttfamily \#include $<$signal.h$>$}\par
+\subsection*{Defines}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{a1_8h_a6d2f57209406fc467f85e3d235ca0af8}{
+\#define {\bfseries CHILD\_\-PROCESS}~0}
+\label{a1_8h_a6d2f57209406fc467f85e3d235ca0af8}
+
+\item 
+\hypertarget{a1_8h_a444e5eb9771cd88ff367b19ed52975db}{
+\#define {\bfseries OUTPUT\_\-PROC}~0}
+\label{a1_8h_a444e5eb9771cd88ff367b19ed52975db}
+
+\item 
+\hypertarget{a1_8h_ac40e028630699ce2e30b10d6fe58eef6}{
+\#define {\bfseries TRANSLATE\_\-PROC}~1}
+\label{a1_8h_ac40e028630699ce2e30b10d6fe58eef6}
+
+\item 
+\hypertarget{a1_8h_ae4d3640fa33744f79768f60d7764e350}{
+\#define {\bfseries PIPE\_\-INPUT\_\-OUTPUT}~0}
+\label{a1_8h_ae4d3640fa33744f79768f60d7764e350}
+
+\item 
+\hypertarget{a1_8h_a7a193c52d66a6ce7ac37a82e861c7bb8}{
+\#define {\bfseries PIPE\_\-INPUT\_\-TRANSLATE}~1}
+\label{a1_8h_a7a193c52d66a6ce7ac37a82e861c7bb8}
+
+\item 
+\hypertarget{a1_8h_af1a2d9df87eb080f39f9544c8e219958}{
+\#define {\bfseries PIPE\_\-TRANS\_\-OUTPUT}~2}
+\label{a1_8h_af1a2d9df87eb080f39f9544c8e219958}
+
+\item 
+\hypertarget{a1_8h_a39912bfe2a55f30e269196f9141d845d}{
+\#define {\bfseries BUFFSIZE}~81}
+\label{a1_8h_a39912bfe2a55f30e269196f9141d845d}
+
+\item 
+\hypertarget{a1_8h_aa8cecfc5c5c054d2875c03e77b7be15d}{
+\#define {\bfseries TRUE}~1}
+\label{a1_8h_aa8cecfc5c5c054d2875c03e77b7be15d}
+
+\item 
+\hypertarget{a1_8h_aa93f0eb578d23995850d61f7d61c55c1}{
+\#define {\bfseries FALSE}~0}
+\label{a1_8h_aa93f0eb578d23995850d61f7d61c55c1}
+
+\item 
+\hypertarget{a1_8h_a9d385e974a49598d267af81de5a33838}{
+\#define {\bfseries KILL}~11}
+\label{a1_8h_a9d385e974a49598d267af81de5a33838}
+
+\item 
+\hypertarget{a1_8h_ada74e7db007a68e763f20c17f2985356}{
+\#define {\bfseries READ}~0}
+\label{a1_8h_ada74e7db007a68e763f20c17f2985356}
+
+\item 
+\hypertarget{a1_8h_aa10f470e996d0f51210d24f442d25e1e}{
+\#define {\bfseries WRITE}~1}
+\label{a1_8h_aa10f470e996d0f51210d24f442d25e1e}
+
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{a1_8h_ae66f6b31b5ad750f1fe042a706a4e3d4}{main} ()
+\begin{DoxyCompactList}\small\item\em The program's entry point. \item\end{DoxyCompactList}\item 
+void \hyperlink{a1_8h_a3eaf0723195dab696128e1936bae4b8d}{input\_\-proc} (int\mbox{[}2\mbox{]}, int, int)
+\begin{DoxyCompactList}\small\item\em The input process. \item\end{DoxyCompactList}\item 
+void \hyperlink{a1_8h_a56dcd1285988e393233032a0e111e6a7}{output\_\-proc} (int, int)
+\begin{DoxyCompactList}\small\item\em The output process. \item\end{DoxyCompactList}\item 
+void \hyperlink{a1_8h_a530ba9f4770c38a2e14bfef5036d3d09}{translate\_\-proc} (int, int)
+\begin{DoxyCompactList}\small\item\em The translate process. \item\end{DoxyCompactList}\item 
+int \hyperlink{a1_8h_aeb03c8f7fb011f5bc4546218e57be4b5}{read\_\-pipe} (int, char $\ast$, size\_\-t)
+\begin{DoxyCompactList}\small\item\em A read() wrapper function. \item\end{DoxyCompactList}\item 
+int \hyperlink{a1_8h_ad2bc40284ec3a12004a41e9ce919884c}{write\_\-pipe} (int, const void $\ast$, size\_\-t)
+\begin{DoxyCompactList}\small\item\em A write() wrapper function. \item\end{DoxyCompactList}\item 
+void \hyperlink{a1_8h_adb1b7593faeb7c51affd62fd62c234ff}{fatal} (char $\ast$)
+\begin{DoxyCompactList}\small\item\em A error helper function. Prints message to stderr and terminates program. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+See: \hyperlink{a1_8c}{a1.c}. \begin{DoxyAuthor}{Author}
+Tom Nightingale 
+\end{DoxyAuthor}
+
+
+\subsection{Function Documentation}
+\hypertarget{a1_8h_adb1b7593faeb7c51affd62fd62c234ff}{
+\index{a1.h@{a1.h}!fatal@{fatal}}
+\index{fatal@{fatal}!a1.h@{a1.h}}
+\subsubsection[{fatal}]{\setlength{\rightskip}{0pt plus 5cm}void fatal (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{s}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_adb1b7593faeb7c51affd62fd62c234ff}
+
+
+A error helper function. Prints message to stderr and terminates program. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+
+\begin{DoxyParams}{Parameters}
+{\em s} & An error message to print to stderr. \\
+\hline
+\end{DoxyParams}
+\hypertarget{a1_8h_a3eaf0723195dab696128e1936bae4b8d}{
+\index{a1.h@{a1.h}!input\_\-proc@{input\_\-proc}}
+\index{input\_\-proc@{input\_\-proc}!a1.h@{a1.h}}
+\subsubsection[{input\_\-proc}]{\setlength{\rightskip}{0pt plus 5cm}void input\_\-proc (
+\begin{DoxyParamCaption}
+\item[{int}]{pid\mbox{[}2\mbox{]}, }
+\item[{int}]{txpipe\_\-output, }
+\item[{int}]{txpipe\_\-translate}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_a3eaf0723195dab696128e1936bae4b8d}
+
+
+The input process. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+This is the program's main process. It monitors all keyboard input and passes characters on to the output process for echoing back. It also stores the characters within a buffer until the special $<$ENTER$>$ character is received. When this occurs, the buffer is sent to the translate function for processing.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pid} & An array containing all child process id's. \\
+\hline
+{\em txpipe\_\-output} & A pipe write file descriptor for sending data to the output process. \\
+\hline
+{\em txpipe\_\-translate} & A pipe write file descriptor for sending data to the translate process. \\
+\hline
+\end{DoxyParams}
+\hypertarget{a1_8h_ae66f6b31b5ad750f1fe042a706a4e3d4}{
+\index{a1.h@{a1.h}!main@{main}}
+\index{main@{main}!a1.h@{a1.h}}
+\subsubsection[{main}]{\setlength{\rightskip}{0pt plus 5cm}int main (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_ae66f6b31b5ad750f1fe042a706a4e3d4}
+
+
+The program's entry point. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+Initializes the processes and ports for IPC. \hypertarget{a1_8h_a56dcd1285988e393233032a0e111e6a7}{
+\index{a1.h@{a1.h}!output\_\-proc@{output\_\-proc}}
+\index{output\_\-proc@{output\_\-proc}!a1.h@{a1.h}}
+\subsubsection[{output\_\-proc}]{\setlength{\rightskip}{0pt plus 5cm}void output\_\-proc (
+\begin{DoxyParamCaption}
+\item[{int}]{rxpipe\_\-input, }
+\item[{int}]{rxpipe\_\-translate}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_a56dcd1285988e393233032a0e111e6a7}
+
+
+The output process. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+This process handles all output display. It simply reads data off its pipes and echos it to stdout. If it receives an 'E' (special $<$ENTER$>$ character), it will check the translate pipe for any data to echo.
+
+
+\begin{DoxyParams}{Parameters}
+{\em rxpipe\_\-input} & A pipe read file descriptor for receiving data from the output process. \\
+\hline
+{\em rxpipe\_\-translate} & A pipe read file descriptor for receiving data from the translate process. \\
+\hline
+\end{DoxyParams}
+\hypertarget{a1_8h_aeb03c8f7fb011f5bc4546218e57be4b5}{
+\index{a1.h@{a1.h}!read\_\-pipe@{read\_\-pipe}}
+\index{read\_\-pipe@{read\_\-pipe}!a1.h@{a1.h}}
+\subsubsection[{read\_\-pipe}]{\setlength{\rightskip}{0pt plus 5cm}int read\_\-pipe (
+\begin{DoxyParamCaption}
+\item[{int}]{pipe\_\-rd, }
+\item[{char $\ast$}]{buffer, }
+\item[{size\_\-t}]{size}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_aeb03c8f7fb011f5bc4546218e57be4b5}
+
+
+A read() wrapper function. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+Helper function for read(), provides error checking.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pipe\_\-rd} & A pipe read file descriptor for receiving data. \\
+\hline
+{\em buffer} & A buffer to write data into. \\
+\hline
+{\em size} & The max amount of data to read. \\
+\hline
+\end{DoxyParams}
+\hypertarget{a1_8h_a530ba9f4770c38a2e14bfef5036d3d09}{
+\index{a1.h@{a1.h}!translate\_\-proc@{translate\_\-proc}}
+\index{translate\_\-proc@{translate\_\-proc}!a1.h@{a1.h}}
+\subsubsection[{translate\_\-proc}]{\setlength{\rightskip}{0pt plus 5cm}void translate\_\-proc (
+\begin{DoxyParamCaption}
+\item[{int}]{rxpipe\_\-input, }
+\item[{int}]{txpipe\_\-output}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_a530ba9f4770c38a2e14bfef5036d3d09}
+
+
+The translate process. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+This process handles translation of the input buffer. Whenever the input process writes data onto the pipe, this process will read it off and parse it according to the following rules. $\ast$ X: Backspace character. $\ast$ a: Translated into z. $\ast$ T: Terminate character.
+
+
+\begin{DoxyParams}{Parameters}
+{\em rxpipe\_\-input} & A pipe read file descriptor for receiving data from the output process. \\
+\hline
+{\em txpipe\_\-output} & A pipe write file descriptor for sending data to the output process. \\
+\hline
+\end{DoxyParams}
+\hypertarget{a1_8h_ad2bc40284ec3a12004a41e9ce919884c}{
+\index{a1.h@{a1.h}!write\_\-pipe@{write\_\-pipe}}
+\index{write\_\-pipe@{write\_\-pipe}!a1.h@{a1.h}}
+\subsubsection[{write\_\-pipe}]{\setlength{\rightskip}{0pt plus 5cm}int write\_\-pipe (
+\begin{DoxyParamCaption}
+\item[{int}]{pipe\_\-wr, }
+\item[{const void $\ast$}]{buffer, }
+\item[{size\_\-t}]{size}
+\end{DoxyParamCaption}
+)}}
+\label{a1_8h_ad2bc40284ec3a12004a41e9ce919884c}
+
+
+A write() wrapper function. 
+
+\begin{DoxyAuthor}{Author}
+Tom Nightingale
+\end{DoxyAuthor}
+Helper function for write(), provides error checking.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pipe\_\-wr} & A pipe write file descriptor for sending data. \\
+\hline
+{\em buffer} & A buffer containing data to write. \\
+\hline
+{\em size} & The max amount of data to write. \\
+\hline
+\end{DoxyParams}
