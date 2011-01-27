@@ -113,7 +113,7 @@ void input_proc(int pid[2], int txpipe_output, int txpipe_translate) {
   char buffer[BUFFSIZE];
 
   while (c != 'T' && (c = getchar()) != EOF) {
-    write(txpipe_output, &c, 1);
+    write_pipe(txpipe_output, &c, 1);
     buffer[count++] = c;
     
     switch (c) {
@@ -125,7 +125,7 @@ void input_proc(int pid[2], int txpipe_output, int txpipe_translate) {
       case 'T':
         // fall through.
       case 'E':
-        write(txpipe_translate, buffer, count);
+        write_pipe(txpipe_translate, buffer, count);
         // fall through.
         
       case 'K':
@@ -236,7 +236,7 @@ void translate_proc(int rxpipe_input, int txpipe_output) {
     // Terminate translated string.
     translated[j - 1] = '\0';
     
-    write(txpipe_output, translated, j);
+    write_pipe(txpipe_output, translated, j);
   }
 }
 
@@ -245,7 +245,7 @@ void translate_proc(int rxpipe_input, int txpipe_output) {
  * @author  Tom Nightingale
  *
  * @brief   A read() wrapper function.
- * @details Helper function for read().
+ * @details Helper function for read(), provides error checking.
  *
  * @param   pipe_rd
  *              A pipe read file descriptor for receiving data.
@@ -264,6 +264,30 @@ int read_pipe(int pipe_rd, char * buffer, size_t size) {
   }
   
   return nread;
+}
+
+
+/**
+ * @author  Tom Nightingale
+ *
+ * @brief   A write() wrapper function.
+ * @details Helper function for write(), provides error checking.
+ *
+ * @param   pipe_wr
+ *              A pipe write file descriptor for sending data.
+ * @param   buffer
+ *              A buffer containing data to write.
+ * @param   size
+ *              The max amount of data to write.
+ */
+int write_pipe(int pipe_wr, const void * buffer, size_t size) {
+  int nwritten = 0;
+  
+  if (write(pipe_wr, buffer, size) <= 0) {
+    fatal("(Error writing to pipe)\n\r");
+  }
+  
+  return nwritten;
 }
 
 

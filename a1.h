@@ -31,4 +31,5 @@ void input_proc(int[2], int, int);
 void output_proc(int, int);
 void translate_proc(int, int);
 int read_pipe(int, char*, size_t);
+int write_pipe(int, const void*, size_t);
 void fatal(char *);
