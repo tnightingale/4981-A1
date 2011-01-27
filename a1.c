@@ -1,18 +1,17 @@
 #include "a1.h";
 
-int main() {
-  // Put keyboard into raw mode
-  system("stty raw -icanon igncr -echo");
-  
+int main() {  
   int pfd[3][2];
   int i = 0;
   int pid[2];
 
+  // Put keyboard into raw mode
+  system("stty raw -icanon igncr -echo");
+  
   // Open the pipes.
   for (i = 0; i < 3; i++) {
     if (pipe(pfd[i]) < 0) {
       fatal("pipe call");
-      exit(1);
     }
   }
   
@@ -43,10 +42,13 @@ int main() {
     }
   }
   
+
+  // Input process (parent).
+
   // Closing unused pipe.
   close(pfd[2][0]);
   close(pfd[2][1]);
-  input_proc(pfd[0], pfd[1]);
+  input_proc(pid, pfd[0], pfd[1]);
   
   // Return keyboard state.
   system("stty -raw icanon -igncr echo");
@@ -55,30 +57,29 @@ int main() {
 }
 
 // Parent Processes.
-void input_proc(int txport_output[2], int txport_translate[2]) {
+void input_proc(int pid[2], int txpipe_output[2], int txpipe_translate[2]) {
   int c = 0;
   int count = 0;
   char buffer[BUFFSIZE];
   
   // Close the read descriptors.
-  close(txport_output[0]);
-  close(txport_translate[0]);
+  close(txpipe_output[0]);
+  close(txpipe_translate[0]);
 
-  while (c != EOF && (c = getchar()) != EOF) {
-    write(txport_output[1], &c, 1);
+  while (c != 'T' && (c = getchar()) != EOF) {
+    write(txpipe_output[1], &c, 1);
     buffer[count++] = c;
     
     switch (c) {
-      // Vertical Tab
-      case 0x0B:
-        break;
+      case KILL:
+        kill(pid[TRANSLATE_PROC], SIGTERM);
+        kill(pid[OUTPUT_PROC], SIGTERM);
+        return;
         
       case 'T':
-        c = EOF;
         // fall through.
-        
       case 'E':
-        write(txport_translate[1], buffer, count);
+        write(txpipe_translate[1], buffer, count);
         // fall through.
         
       case 'K':
@@ -88,86 +89,106 @@ void input_proc(int txport_output[2], int txport_translate[2]) {
     }
   }
   
-  fprintf(stderr, "END: parent.\n\r");
+  //fprintf(stderr, "END: parent.\n\r");
 }
 
 // Child Processes.
-void output_proc(int rxport_input[2], int rxport_translate[2]) {
-  int nread;
+void output_proc(int rxpipe_input[2], int rxpipe_translate[2]) {
   char buffer[BUFFSIZE];
+  int finished = FALSE;
 
   // Close the write descriptors.
-  close(rxport_input[1]);
-  close(rxport_translate[1]);
+  close(rxpipe_input[1]);
+  close(rxpipe_translate[1]);
   
-  while ((nread = read(rxport_input[0], buffer, BUFFSIZE)) != EOF) {    
-    switch (nread) {
-      case -1:
-      case 0:
-        fprintf(stderr, "(pipe empty)\n\r");
-        return;
+  while (!finished && read_pipe(rxpipe_input[0], buffer, BUFFSIZE) >= 0) {
+    switch (buffer[0]) {
       
-      default:
-        buffer[nread] = '\0';
-
-        if (buffer[0] == 'E') { 
-            printf("%s\n\r", buffer);
-        } else {
-            printf("%s", buffer);
-        }
+      case 'T':
+        finished = TRUE;
+        // Fall through.
         
+      case 'E':
+        printf("%s\n\r", buffer);
+    
+        if (read_pipe(rxpipe_translate[0], buffer, BUFFSIZE) >= 0) {
+          printf("%s\n\r", buffer);
+        }
+        break;
+        
+      case 'K':
+        printf("%s\n\r", buffer);
+        break;
+
+      default:
+        printf("%s", buffer);
         fflush(stdout);
         break;
     }
   }
-  fprintf(stderr, "\n\rEND: output_proc.\n\r");
+    
+  //fprintf(stderr, "END: output_proc.\n\r");
 }
 
-void translate_proc(int rxport_input[2], int txport_output[2]) {
+void translate_proc(int rxpipe_input[2], int txpipe_output[2]) {
   int nread;
   int i = 0;
   int j = 0;
-  char buf[BUFFSIZE];
+  int finished = 0;
+  char buffer[BUFFSIZE];
   char translated[BUFFSIZE];
 
   // Close the write descriptors.
-  close(rxport_input[1]);
-  close(txport_output[0]);
+  close(rxpipe_input[1]);
+  close(txpipe_output[0]);
   
-  while ((nread = read(rxport_input[0], buf, BUFFSIZE)) != EOF) {
-    switch (nread) {
-      case -1:
-      case 0:
-        fprintf(stderr, "(pipe empty)\n\r");
-        return;
-      
-      default:
-        for (i = 0, j = 0; i < nread; i++) {
+  while (!finished && (nread = read_pipe(rxpipe_input[0], buffer, BUFFSIZE)) >= 0) {
+    // Process each character received.
+    for (i = 0, j = 0; !finished && i < nread; i++) {
+      switch (buffer[i]) {        
+        // "Backspace" character.
+        case 'X':
+          // Don't backspace if nothing there.
+          j = (j > 0) ? j - 1 : 0;
+          break;
           
-          switch (buf[i]) {
-            case 'X':
-              j--;
-              break;
-              
-            default:
-              translated[j++] = buf[i];
-              break;
-          }
-        }
-        translated[j] = '\0';
+        case 'T':
+          finished = TRUE;
+          translated[j++] = '\0';
+          break;
         
-        printf("%s\n\r", translated);
-        fflush(stdout);
-        break;
+        // Replacement.
+        case 'a':
+          buffer[i] = 'z';
+          // fall through.
+          
+        default:
+          translated[j++] = buffer[i];
+          break;
+      }
     }
+    // Terminate translated string.
+    translated[j - 1] = '\0';
+    
+    write(txpipe_output[1], translated, j);
+  }
+}
+
+int read_pipe(int pipe_rd, char * buffer, size_t size) {
+  int nread = 0;
+  
+  if ((nread = read(pipe_rd, buffer, size)) <= 0) {
+    fatal("(pipe empty)\n\r");
+  } else {
+    buffer[nread] = '\0';
   }
   
-  fprintf(stderr, "END: translate_proc.\n\r");
+  return nread;
 }
 
 // Error Function.
 void fatal(char *s) {
-    perror(s);    /* print error msg and die */
-    system("stty -raw -igncr echo");
-    exit(1);
+  perror(s);    /* print error msg and die */
+  system("stty -raw -igncr echo");
+  exit(1);
 }
